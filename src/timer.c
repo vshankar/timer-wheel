@@ -21,7 +21,7 @@ expire_ctx_t ectx[COUNT];
 #endif
 
 void
-func (struct timer_list *timer, void *data)
+func (struct timer_list *timer, void *data, unsigned long call_time)
 {
 #ifdef DEBUG
         expire_ctx_t *ctx = data;
@@ -29,10 +29,9 @@ func (struct timer_list *timer, void *data)
         pthread_spin_lock (&debug_lock);
         {
                 ++incoming;
-                (void) gettimeofday (&tv, 0);
                 /* printf ("expiry: %lu (%lu), expired: %lu (%lu)\n",
                         ctx->expiry, ctx->insert_time,
-                        (tv.tv_sec - ctx->insert_time), tv.tv_sec); */
+                        (call_time- ctx->insert_time), call_time); */
 
         }
         pthread_spin_unlock (&debug_lock);
@@ -138,8 +137,8 @@ main (int argc, char **argv)
         srand(seed);
 
         for (j = 0; j < COUNT; j++) {
-                usleep (2000);
-                (void) internal_add_timer (j, rand() % 20);
+                usleep (3000);
+                (void) internal_add_timer (j, rand() % 50);
                 ++dispatched;
         }
 

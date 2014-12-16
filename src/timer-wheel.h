@@ -39,7 +39,7 @@ struct timer_list {
 
         unsigned long expires;
 
-        void (*function)(struct timer_list *, void *);
+        void (*function)(struct timer_list *, void *, unsigned long);
         void *data;
 };
 

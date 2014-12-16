@@ -150,7 +150,7 @@ cascade (struct tvec_base *base, struct tvec *tv, int index)
 void
 run_timers ()
 {
-        unsigned long index;
+        unsigned long index, call_time;
         struct timer_list *timer;
 
         struct list_head work_list;
@@ -166,10 +166,10 @@ run_timers ()
                     (!cascade (base, &base->tv4, INDEX(2))))
                         cascade (base, &base->tv5, INDEX(3));
 
-                ++base->timer_sec;
+                call_time = base->timer_sec++;
                 list_replace_init (base->tv1.vec + index, head);
                 while (!list_empty(head)) {
-                        void (*fn)(struct timer_list *, void *);
+                        void (*fn)(struct timer_list *, void *, unsigned long);
                         void *data;
 
                         timer = list_first_entry (head, struct timer_list, entry);
@@ -177,7 +177,7 @@ run_timers ()
                         data = timer->data;
 
                         detach_timer (timer);
-                        fn (timer, data);
+                        fn (timer, data, call_time);
                 }
         }
         pthread_spin_unlock (&base->lock);
