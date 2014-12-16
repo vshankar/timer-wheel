@@ -169,7 +169,7 @@ run_timers ()
                 ++base->timer_sec;
                 list_replace_init (base->tv1.vec + index, head);
                 while (!list_empty(head)) {
-                        void (*fn)(void *);
+                        void (*fn)(struct timer_list *, void *);
                         void *data;
 
                         timer = list_first_entry (head, struct timer_list, entry);
@@ -177,7 +177,7 @@ run_timers ()
                         data = timer->data;
 
                         detach_timer (timer);
-                        fn (data);
+                        fn (timer, data);
                 }
         }
         pthread_spin_unlock (&base->lock);

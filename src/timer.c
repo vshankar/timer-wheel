@@ -21,7 +21,7 @@ expire_ctx_t ectx[COUNT];
 #endif
 
 void
-func (void *data)
+func (struct timer_list *timer, void *data)
 {
 #ifdef DEBUG
         expire_ctx_t *ctx = data;
@@ -36,6 +36,8 @@ func (void *data)
 
         }
         pthread_spin_unlock (&debug_lock);
+
+        free (timer);
 #endif
 }
 
@@ -136,7 +138,7 @@ main (int argc, char **argv)
         srand(seed);
 
         for (j = 0; j < COUNT; j++) {
-                usleep (10000);
+                usleep (2000);
                 (void) internal_add_timer (j, rand() % 20);
                 ++dispatched;
         }
