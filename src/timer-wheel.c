@@ -86,12 +86,37 @@ __add_timer (struct tvec_base *base, struct timer_list *timer)
         list_add_tail (&timer->entry, vec);
 }
 
+unsigned long
+apply_slack(struct tvec_base *base, struct timer_list *timer)
+{
+        long delta;
+        unsigned long mask, expires, expires_limit;
+
+        expires = timer->expires;
+
+        delta = expires - base->timer_sec;
+        if (delta < 256)
+                return expires;
+
+        expires_limit = expires + delta / 256;
+        mask = expires ^ expires_limit;
+        if (mask == 0)
+                return expires;
+
+        int bit = find_last_bit (&mask, BITS_PER_LONG);
+        mask = (1UL << bit) - 1;
+
+        expires_limit = expires_limit & ~(mask);
+        return expires_limit;
+}
+
 void
 add_timer (struct timer_list *timer)
 {
         pthread_spin_lock (&base->lock);
         {
                 timer->expires += base->timer_sec;
+                timer->expires = apply_slack (base, timer);
                 __add_timer (base, timer);
         }
         pthread_spin_unlock (&base->lock);
@@ -144,8 +169,8 @@ run_timers ()
                 ++base->timer_sec;
                 list_replace_init (base->tv1.vec + index, head);
                 while (!list_empty(head)) {
-                        void (*fn)(unsigned long);
-                        unsigned long data;
+                        void (*fn)(void *);
+                        void *data;
 
                         timer = list_first_entry (head, struct timer_list, entry);
                         fn = timer->function;

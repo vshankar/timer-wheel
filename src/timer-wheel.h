@@ -12,6 +12,8 @@
 #define TVR_MASK  (TVR_SIZE - 1)
 #define TVN_MASK  (TVN_SIZE - 1)
 
+#define BITS_PER_LONG  64
+
 struct tvec {
         struct list_head vec[TVN_SIZE];
 };
@@ -37,8 +39,8 @@ struct timer_list {
 
         unsigned long expires;
 
-        void (*function)(unsigned long);
-        unsigned long data;
+        void (*function)(void *);
+        void *data;
 };
 
 int init_timers ();
